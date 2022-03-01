@@ -1,7 +1,6 @@
 var express = require('express');
-const formidable = require('formidable');
 var router = express.Router();
-var fomidable = require('formidable');
+var formidable = require('formidable');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {

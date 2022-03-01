@@ -4,7 +4,7 @@ class DropBoxController{
         this.btnSendFileEl = document.querySelector("#btn-send-file");
         this.inputFilesEl = document.querySelector('#files');
         this.snackModalEl = document.querySelector('#react-snackbar-root')
-
+        this.progessBarEl = this.snackModalEl.querySelector('.mc-progress-bar-fg');
         //incia o evento click
         this.initEvents();
 
@@ -69,6 +69,14 @@ class DropBoxController{
                     reject(event);
 
                 };
+
+                //evento que responde sempre que envia um bit
+                ajax.upload.onprogress = event =>{
+                    this.uploadProgress(event,file)
+                    
+                }
+
+
                 // como é leitura de arquivo, para se lê, utiliza o FormData
                 let formData = new FormData();
                 //1) nome do campo que o post receba - 2) qual é o arquivo que será enviado (file do forEach)
@@ -84,4 +92,18 @@ class DropBoxController{
         return Promise.all(promises)
 
     }
+
+
+
+    uploadProgress(event,file){
+
+        let loaded = event.loaded;
+        let total = event.total;
+
+        let porcent = parseInt((loaded / total) * 100);
+
+        //atualizando a barrinho no css
+        this.progessBarEl.style.width = `${porcent}%`
+    }
+
 }
