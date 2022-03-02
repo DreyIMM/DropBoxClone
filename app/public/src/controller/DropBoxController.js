@@ -45,15 +45,43 @@ class DropBoxController{
 
         //esse evento altera o modal de carregamento
         this.inputFilesEl.addEventListener('change', event=>{
+
+            this.btnSendFileEl.disabled = true;
+
             //(event.target.files) -> coleção do arquivo enviado
-            
-            this.uploadTask(event.target.files);
+            this.uploadTask(event.target.files).then(responses =>{
+
+                responses.forEach(resp =>{
+
+                    this.getFirebaseRef().push().set(resp.files['input-file'])
+
+                });
+
+                
+
+            }).catch(err=>{
+                this.UploadComplete()
+                console.error(err)
+            });
             
             this.modalShow()
-            //zerar o campo e para poder start novamente
-            this.inputFilesEl.value = '';
+            
                     
         });
+
+    }
+
+    UploadComplete(){
+        this.modalShow(false);
+        //zerar o campo e para poder start novamente
+        this.inputFilesEl.value = '';
+        this.btnSendFileEl.disabled = false;
+    }
+
+    //pegar ref do firebase onde queremos salvar
+    getFirebaseRef(){
+
+        return firebase.database().ref('files');
 
     }
 
@@ -80,7 +108,7 @@ class DropBoxController{
                 ajax.open('POST', '/upload');
                 //.onload é onde o funcionamento ocorre
                 ajax.onload = event =>{
-                    this.modalShow(false)
+                    
                     try{
 
                         resolve(JSON.parse(ajax.responseText));
@@ -94,7 +122,7 @@ class DropBoxController{
 
                 //caso tenha erro no envio
                 ajax.onerror = event =>{
-                    this.modalShow(false)
+                    
                     reject(event);
 
                 };
