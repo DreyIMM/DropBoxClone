@@ -52,12 +52,13 @@ class DropBoxController{
             this.uploadTask(event.target.files).then(responses =>{
 
                 responses.forEach(resp =>{
-
+                    //vai no resp - files e dentro dele pega o (input-file) e seus dados e da um push no firebase
                     this.getFirebaseRef().push().set(resp.files['input-file'])
 
                 });
 
                 
+                this.UploadComplete()
 
             }).catch(err=>{
                 this.UploadComplete()
@@ -80,7 +81,7 @@ class DropBoxController{
 
     //pegar ref do firebase onde queremos salvar
     getFirebaseRef(){
-
+        //vai dentro de Firebase e criar uma referência chamada files
         return firebase.database().ref('files');
 
     }
