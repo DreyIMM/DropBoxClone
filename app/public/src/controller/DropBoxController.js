@@ -8,10 +8,12 @@ class DropBoxController{
         this.progessBarEl = this.snackModalEl.querySelector('.mc-progress-bar-fg');
         this.nameFile = this.snackModalEl.querySelector(".filename")
         this.timeLeftEl = this.snackModalEl.querySelector(".timeleft")
+        this.listFileEl = document.querySelector('#list-of-files-and-directories');
+
         //incia o evento click
         this.connectFirebase();
         this.initEvents();
-       
+        this.readFiles();
 
     }
 
@@ -195,14 +197,17 @@ class DropBoxController{
     }
 
     //método para tratar qual é o tipo de arquivo
-    getFileView(file){
+    getFileView(file, key){
 
-        return `
-            <li>
+        let li = document.createElement('li');
+        li.dataset.key = key;
+        li.innerHTML =  `
                 ${this.getFileIconView(file)}
-                <div class="name text-center">${file.name}</div>
-            </li>                   
+                <div class="name text-center">${file.originalFilename}</div>
+                              
         `
+
+        return li;
 
     }
 
@@ -210,7 +215,7 @@ class DropBoxController{
 
     //metodo para saber a extensão e pegar a icone correto
     getFileIconView(file){
-        switch(file.type){
+        switch(file.mimetype){
 
 
             case 'folder':
@@ -383,6 +388,26 @@ class DropBoxController{
                 
                 `;
         }
+    }
+    //esse metodo permite acessar o "bd" ref ficar ouvindo e enviar um snapshot dos itens no firabase
+    readFiles(){
+
+        this.getFirebaseRef().on('value', snapshot =>{
+            this.listFileEl.innerHTML = '';
+
+            snapshot.forEach(snapshotItem =>{
+
+                let key = snapshotItem.key;
+                let data = snapshotItem.val();
+
+                console.log(key, data);
+                this.listFileEl.appendChild(this.getFileView(data, key));
+
+            });
+
+        })
+
+
     }
 
 }
