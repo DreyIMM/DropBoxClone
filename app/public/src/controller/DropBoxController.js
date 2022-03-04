@@ -200,12 +200,13 @@ class DropBoxController{
     getFileView(file, key){
 
         let li = document.createElement('li');
-        li.dataset.key = key;
+        li.dataset.keyOK = key;
         li.innerHTML =  `
                 ${this.getFileIconView(file)}
                 <div class="name text-center">${file.originalFilename}</div>
                               
         `
+        this.initEventsLi(li);
 
         return li;
 
@@ -400,7 +401,7 @@ class DropBoxController{
                 let key = snapshotItem.key;
                 let data = snapshotItem.val();
 
-                console.log(key, data);
+               
                 this.listFileEl.appendChild(this.getFileView(data, key));
 
             });
@@ -408,6 +409,15 @@ class DropBoxController{
         })
 
 
+    }
+    //basicamente destaque o li selecionado
+    initEventsLi(li){
+        li.addEventListener('click', e=>{
+
+            li.classList.toggle('selected');
+
+
+        })
     }
 
 }
