@@ -1,7 +1,8 @@
 class DropBoxController{
 
     constructor(){
-        
+
+        this.onSelectionChange = new Event('selectionchange');
         this.btnSendFileEl = document.querySelector("#btn-send-file");
         this.inputFilesEl = document.querySelector('#files');
         this.snackModalEl = document.querySelector('#react-snackbar-root')
@@ -9,7 +10,7 @@ class DropBoxController{
         this.nameFile = this.snackModalEl.querySelector(".filename")
         this.timeLeftEl = this.snackModalEl.querySelector(".timeleft")
         this.listFileEl = document.querySelector('#list-of-files-and-directories');
-
+        
         //incia o evento click
         this.connectFirebase();
         this.initEvents();
@@ -36,7 +37,11 @@ class DropBoxController{
 
 
     initEvents(){
-       
+    
+        this.listFileEl.addEventListener('selectionchange', e=>{
+            console.log("selection");
+        });
+
         //Quando ocorre o evento click no botão btnSendFileEl, esse botão chamo input file e abre o explore para enviar o arquivo
         this.btnSendFileEl.addEventListener('click', event=> {
 
@@ -412,63 +417,50 @@ class DropBoxController{
     }
     //basicamente destaque o li selecionado
     initEventsLi(li){
+
         li.addEventListener('click', e=>{
             
+            //criando um evento personalizado      
+            this.listFileEl.dispatchEvent(this.onSelectionChange)
             if(e.shiftKey){
                 //primeiro li selecionado
                 let firstLi = this.listFileEl.querySelector('li.selected');
-
                 if(firstLi){
-
                     let indexStart;
                     let indexEnd;
-
                     let lis = li.parentElement.childNodes;
                     console.log("entrou", lis);
                     // até o parentElement, retorna o pai do li, ChildNodes-> os filhos do li, torna-se um array a variavel lis
                     lis.forEach((el,index)=>{
-
                         if(firstLi === el) indexStart = index;
                         if(li === el) indexEnd = index;
-                       
-
+                    
                     });
                     //ordenar o array sem precisar fazer o if para saber qual é o maior ou menor.
                     let index = [indexStart, indexEnd].sort()
-                   
-
+                
                     lis.forEach((el, i)=>{
-
                         //adicona a classe selecte no intervalo do array INDEX, por isso a importancia de ordenar
                         if(i >= index[0] && i <= index[1]){
-
                             el.classList.add('selected');
                         }
-
-
                     });
-
                     return true;
-                   
+                
                 }
-
-
             }
             
             //ao evento click, verifica se o ctrl não esta presionado, caso não, remove a class selected
             if(!e.ctrlKey){
-
                 this.listFileEl.querySelectorAll(('li.selected')).forEach(el =>{
-
                     el.classList.remove('selected');
-
                 })
-            
-            } 
-            
-            li.classList.toggle('selected');
-            
-        });
+                
+                } 
+                
+                li.classList.toggle('selected');
+                
+            });
     }
 
 }
