@@ -10,7 +10,12 @@ class DropBoxController{
         this.nameFile = this.snackModalEl.querySelector(".filename")
         this.timeLeftEl = this.snackModalEl.querySelector(".timeleft")
         this.listFileEl = document.querySelector('#list-of-files-and-directories');
-        
+        //pegando os id dos buttons 
+        this.btnNewFolder = document.querySelector('#btn-new-folder');
+        this.btnRename = document.querySelector('#btn-rename');
+        this.btnDelete = document.querySelector('#btn-delete');
+
+
         //incia o evento click
         this.connectFirebase();
         this.initEvents();
@@ -35,11 +40,38 @@ class DropBoxController{
           firebase.initializeApp(firebaseConfig)
     }
 
+    //retornar todos os elementos que estão com a classe selected atividos.
+    getSelection(){
+
+        return this.listFileEl.querySelectorAll('.selected');
+        
+    }
+
 
     initEvents(){
     
         this.listFileEl.addEventListener('selectionchange', e=>{
-            console.log("selection");
+            
+            switch(this.getSelection().length){
+                //caso seja zero: o botão excluir e renomear não devem apareer
+                case 0:
+                    this.btnDelete.style.display = 'none';
+                    this.btnRename.style.display = 'none';
+                break;
+
+                case 1:
+                    this.btnDelete.style.display = 'block';
+                    this.btnRename.style.display = 'block';
+                break;
+
+                default:
+                    this.btnDelete.style.display = 'block';
+                    this.btnRename.style.display = 'none';
+
+            }
+            
+
+
         });
 
         //Quando ocorre o evento click no botão btnSendFileEl, esse botão chamo input file e abre o explore para enviar o arquivo
@@ -418,10 +450,9 @@ class DropBoxController{
     //basicamente destaque o li selecionado
     initEventsLi(li){
 
-        li.addEventListener('click', e=>{
-            
-            //criando um evento personalizado      
-            this.listFileEl.dispatchEvent(this.onSelectionChange)
+        li.addEventListener('click', e=>{            
+           
+            //só entra no segundo click devido ao toggle, e essa correto
             if(e.shiftKey){
                 //primeiro li selecionado
                 let firstLi = this.listFileEl.querySelector('li.selected');
@@ -429,7 +460,7 @@ class DropBoxController{
                     let indexStart;
                     let indexEnd;
                     let lis = li.parentElement.childNodes;
-                    console.log("entrou", lis);
+                  
                     // até o parentElement, retorna o pai do li, ChildNodes-> os filhos do li, torna-se um array a variavel lis
                     lis.forEach((el,index)=>{
                         if(firstLi === el) indexStart = index;
@@ -445,22 +476,26 @@ class DropBoxController{
                             el.classList.add('selected');
                         }
                     });
+                    this.listFileEl.dispatchEvent(this.onSelectionChange);
                     return true;
-                
+                   
                 }
             }
             
             //ao evento click, verifica se o ctrl não esta presionado, caso não, remove a class selected
             if(!e.ctrlKey){
-                this.listFileEl.querySelectorAll(('li.selected')).forEach(el =>{
-                    el.classList.remove('selected');
-                })
+                    this.listFileEl.querySelectorAll(('li.selected')).forEach(el =>{
+                        el.classList.remove('selected');
+                        
+                    })
                 
-                } 
+            } 
                 
-                li.classList.toggle('selected');
-                
-            });
+            li.classList.toggle('selected');
+                 //criando um evento personalizado    
+            this.listFileEl.dispatchEvent(this.onSelectionChange)
+        
+        });
     }
 
 }
