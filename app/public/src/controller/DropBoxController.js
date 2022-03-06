@@ -578,12 +578,19 @@ class DropBoxController{
                     this.listFileEl.querySelectorAll(('li.selected')).forEach(el =>{
                         el.classList.remove('selected');
                         
+                        if(el == li){
+                            li.classList.remove('selected');
+                        }
+                    
+                    
                     })
+                    
                 
             } 
                 
             li.classList.toggle('selected');
-                 //criando um evento personalizado    
+            
+            //criando um evento personalizado    
             this.listFileEl.dispatchEvent(this.onSelectionChange)
         
         });
