@@ -49,7 +49,26 @@ class DropBoxController{
 
 
     initEvents(){
-    
+        //criando um evento para renomar o arquivo selecionado, ao clikar no Renomear
+        this.btnRename.addEventListener('click', e=>{
+            
+            let li = this.getSelection()[0];
+            //li.dataset.file está como string, devemos converter para objeto JSON
+            let file = JSON.parse(li.dataset.file)
+
+            let name = prompt("Renomear o arquivo:", file.originalFilename);
+
+            if(name){
+                //altera no firebase
+                //conecta na ref do fireabse 
+                //procura um filho que tem a mesma chaves
+                file.originalFilename = name ;
+                this.getFirebaseRef().child(li.dataset.key).set(file);
+            }
+
+        })
+
+
         this.listFileEl.addEventListener('selectionchange', e=>{
             
             switch(this.getSelection().length){
@@ -238,6 +257,8 @@ class DropBoxController{
 
         let li = document.createElement('li');
         li.dataset.key = key;
+        //FILE é um objeto JSON, e dentro do dataset só armazena string, por isso devemos converter para string
+        li.dataset.file = JSON.stringify(file);
         li.innerHTML =  `
                 ${this.getFileIconView(file)}
                 <div class="name text-center">${file.originalFilename}</div>
