@@ -48,7 +48,59 @@ class DropBoxController{
     }
 
 
+    removeTask(){
+
+        let promises =[];
+
+        this.getSelection().forEach(li=>{
+
+            let file = JSON.parse(li.dataset.file);
+            let key = li.dataset.key;
+            let formData = new FormData();
+
+            formData.append('path', file.filepath);
+            
+            formData.append('key', key);
+
+            promises.push(this.ajax('/file', 'DELETE',formData));
+            
+
+        })
+
+        return Promise.all(promises);
+
+    }
+
+
+
+
     initEvents(){
+        //criano um evento para excluir o arquivo
+
+        this.btnDelete.addEventListener('click', e=>{
+            
+            this.removeTask().then(responses =>{
+                
+                responses.forEach(response=>{
+                    
+                    if(response.fields.key){
+                        this.getFirebaseRef().child(response.fields.key).remove();
+                        
+                        console.log(response.fields.key);
+                    }
+
+
+                })
+                    
+            }).catch(err=>{
+                
+                console.error(err);
+
+            })
+
+        })
+
+
         //criando um evento para renomar o arquivo selecionado, ao clikar no Renomear
         this.btnRename.addEventListener('click', e=>{
             
@@ -150,6 +202,51 @@ class DropBoxController{
 
     }
 
+    //nesse caso o unico parâmetro obrigatorio é a url
+    ajax(url, method='GET',formData= new FormData(), onprogress= function(){}, onloadstart =function(){}){
+
+        return new Promise((resolve, reject)=>{
+
+            let ajax = new XMLHttpRequest();
+
+            //abrir a conecção via post na posta /upload   
+            ajax.open(method.toUpperCase(), url);
+            //.onload é onde o funcionamento ocorre
+            ajax.onload = event =>{
+                
+                try{
+
+                    resolve(JSON.parse(ajax.responseText));
+
+                }catch(e){
+
+                    reject(e);
+                }
+
+            };
+
+            //caso tenha erro no envio
+            ajax.onerror = event =>{
+                
+                reject(event);
+
+            };
+
+            //evento que responde sempre que envia um bit
+            ajax.upload.onprogress = onprogress;
+
+            onloadstart();
+            
+            //envia as informações via AJAX
+            ajax.send(formData);      
+
+        });
+
+        
+    }
+
+
+
 
     //metodo para receber os arquivos
     //para cada solicitação vamos utilizar o ajax
@@ -159,50 +256,21 @@ class DropBoxController{
         // file não é um array e sim uma coleção e para converta, utiliza-se o spreatch 
         [...files].forEach(file =>{
 
-            promises.push(new Promise((resolve,reject)=>{
+            // como é leitura de arquivo, para se lê, utiliza o FormData
+            let formData = new FormData();
+            //1) nome do campo que o post receba - 2) qual é o arquivo que será enviado (file do forEach)
+            formData.append('input-file', file);
+                
 
-                let ajax = new XMLHttpRequest();
+            promises.push(this.ajax('/upload', 'POST',formData,()=>{
 
-                //abrir a conecção via post na posta /upload   
-                ajax.open('POST', '/upload');
-                //.onload é onde o funcionamento ocorre
-                ajax.onload = event =>{
-                    
-                    try{
+                this.uploadProgress(event,file)
+                
+            }, ()=>{
 
-                        resolve(JSON.parse(ajax.responseText));
-
-                    }catch(e){
-
-                        reject(e);
-                    }
-
-                };
-
-                //caso tenha erro no envio
-                ajax.onerror = event =>{
-                    
-                    reject(event);
-
-                };
-
-                //evento que responde sempre que envia um bit
-                ajax.upload.onprogress = event =>{
-
-                    this.uploadProgress(event,file)
-                   
-                }
-
-                // como é leitura de arquivo, para se lê, utiliza o FormData
-                let formData = new FormData();
-                //1) nome do campo que o post receba - 2) qual é o arquivo que será enviado (file do forEach)
-                formData.append('input-file', file);
                 // Date.now() retorna em milisegundos
                 this.startUploadTime = Date.now();
                 
-                //envia as informações via AJAX
-                ajax.send(formData);               
-
             }));
         });
         //verifica todo mundo, e os resolve da colection
