@@ -52,17 +52,19 @@ class DropBoxController{
 
         let promises =[];
 
-        this.getSelection().forEach(li=>{
-
+        this.getSelection().forEach((li)=>{
+            
             let file = JSON.parse(li.dataset.file);
             let key = li.dataset.key;
+
+            // dados que quero enviar para o meu servidor
             let formData = new FormData();
 
             formData.append('path', file.filepath);
-            
+                
             formData.append('key', key);
 
-            promises.push(this.ajax('/file', 'DELETE',formData));
+            promises.push(this.ajax('/file', 'DELETE', formData));
             
 
         })
@@ -77,9 +79,9 @@ class DropBoxController{
     initEvents(){
         //criano um evento para excluir o arquivo
 
-        this.btnDelete.addEventListener('click', e=>{
-            
-            this.removeTask().then(responses =>{
+        this.btnDelete.addEventListener('click', (e)=>{
+           
+            this.removeTask().then((responses) =>{
                 
                 responses.forEach(response=>{
                     
@@ -210,7 +212,7 @@ class DropBoxController{
             let ajax = new XMLHttpRequest();
 
             //abrir a conecção via post na posta /upload   
-            ajax.open(method.toUpperCase(), url);
+            ajax.open(method, url);
             //.onload é onde o funcionamento ocorre
             ajax.onload = event =>{
                 

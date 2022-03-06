@@ -9,36 +9,32 @@ router.get('/', function(req, res, next) {
 });
 
 
-router.delete('/file', (req,res)=>{
 
+router.delete('/file', (req, res) => {
   let form = new formidable.IncomingForm({
     uploadDir: './upload',
     keepExtensions: true
-  });
+  })
 
-  form.parse(req,(err,fields, files)=>{
-
-    let path = "./" + fields.path;
-
-    if(fs.existsSync(path)){
-
-      fs.unlink(path, err=>{
+  form.parse(req, (err, fields, files) => {
+    
+    
+    
+    if(fs.existsSync(fields.path)){
+      fs.unlink(fields.path, err=>{
         if(err){
           res.status(400).json({
             err
-          })
+          });
         }else{
-
           res.json({
             fields
           })
-
         }
       });
-
     }
-  });  
-
+    
+  })
 })
 
 
