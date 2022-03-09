@@ -2,6 +2,7 @@ class DropBoxController{
 
     constructor(){
 
+        this.currentFolder = ['hcode'];
         this.onSelectionChange = new Event('selectionchange');
         this.btnSendFileEl = document.querySelector("#btn-send-file");
         this.inputFilesEl = document.querySelector('#files');
@@ -77,8 +78,22 @@ class DropBoxController{
 
 
     initEvents(){
-        //criano um evento para excluir o arquivo
 
+        //criando um evento para criar uma nova pasta
+        this.btnNewFolder.addEventListener('click', e=>{
+            let name = prompt("nome da nova pasta");
+
+            if(name){
+                this.getFirebaseRef().push().set({
+                    originalFilename: name,
+                    mimetype: 'folder',
+                    filepath: this.currentFolder.join('/')
+                })
+            }
+        })
+
+
+        //criano um evento para excluir o arquivo
         this.btnDelete.addEventListener('click', (e)=>{
            
             this.removeTask().then((responses) =>{
