@@ -9,6 +9,33 @@ router.get('/', function(req, res, next) {
 });
 
 
+router.get('/file', (req,res)=>{
+  
+  let path = req.query.path
+
+  if(fs.existsSync(path)){
+    //1) caso ocorra erro - 2) dados do arquvio 
+    fs.readFile(path, (err, data)=>{
+      if(err){
+        console.error(err);
+        res.status(400).json({
+          error: err
+        });
+      }else{
+        res.end(data)
+      }
+    })
+
+
+  }else{
+    res.status(404).json({
+      error: 'File not found :)'
+    })
+  }
+
+
+})
+
 
 router.delete('/file', (req, res) => {
   let form = new formidable.IncomingForm({
@@ -32,6 +59,12 @@ router.delete('/file', (req, res) => {
           })
         }
       });
+    }else{
+
+      res.status(404).json({
+        error: 'File not found :)'
+      })
+
     }
     
   })
