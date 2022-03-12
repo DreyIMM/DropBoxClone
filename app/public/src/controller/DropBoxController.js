@@ -3,7 +3,7 @@ class DropBoxController{
     constructor(){
 
         //atualizando o brandcamp
-        this.navEl = document.querySelector("#browse-location");
+        this.navEl = document.querySelector('#browse-location');
 
         this.currentFolder = ['hcode'];
         this.onSelectionChange = new Event('selectionchange');
@@ -567,10 +567,8 @@ class DropBoxController{
     }
 
     //metodo para criar um nova pasta e lê os arquivos que estão naquela pasta
-
-
     openFolder(){
-    
+        //verifico se existe um lastFolder, e caso sim, desligo o evento para exibir os arquivos
         if(this.lastFolder) this.getFirebaseRef(this.lastFolder).off('value');
         
 
@@ -589,7 +587,7 @@ class DropBoxController{
 
             //pasta atual
             let folderName = this.currentFolder[i];
-            //result = ultimo
+           
             let span = document.createElement('span')
 
             path.push(folderName);
@@ -620,13 +618,16 @@ class DropBoxController{
         }
 
         this.navEl.innerHTML = nav.innerHTML;
-
+        
+       //fazendo um evento click para todos os elementos a  observe-se que o dataset está com dataset.path
         this.navEl.querySelectorAll('a').forEach(a=>{
-            a.addEventListener('click', a=>{
-                a.preventDefault();
+            a.addEventListener('click', e=>{
 
+                e.preventDefault();
+                console.log(a.dataset)
                 this.currentFolder =  a.dataset.path.split('/');
                 this.openFolder();
+
             })
         })
                                   
@@ -640,8 +641,9 @@ class DropBoxController{
 
         //criando um evento para both click
         li.addEventListener('dblclick', e=>{
-            
+            //faz um parse, porque está como string e quero como um json
             let file = JSON.parse(li.dataset.file);
+            //verificar o tipo do li clicado
 
             switch(file.mimetype){
                 case 'folder':
@@ -650,7 +652,7 @@ class DropBoxController{
                 break;
                 //se for um arquivo, é só abrir.
                 default:    
-                    window.open('file?path=' +file.filepath);
+                    window.open('/file?path=' +file.filepath);
             }
 
         });      
