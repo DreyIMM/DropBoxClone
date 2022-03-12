@@ -2,6 +2,9 @@ class DropBoxController{
 
     constructor(){
 
+        //atualizando o brandcamp
+        this.navEl = document.querySelector("#browse-location");
+
         this.currentFolder = ['hcode'];
         this.onSelectionChange = new Event('selectionchange');
         this.btnSendFileEl = document.querySelector("#btn-send-file");
@@ -20,7 +23,8 @@ class DropBoxController{
         //incia o evento click
         this.connectFirebase();
         this.initEvents();
-        this.readFiles();
+        this.openFolder();
+        
 
     }
 
@@ -207,9 +211,12 @@ class DropBoxController{
     }
 
     //pegar ref do firebase onde queremos salvar
-    getFirebaseRef(){
+    getFirebaseRef(path){
+
+        if(!path) path = this.currentFolder.join('/');
+
         //vai dentro de Firebase e criar uma referência chamada files
-        return firebase.database().ref('files');
+        return firebase.database().ref(path);
 
     }
 
@@ -536,6 +543,8 @@ class DropBoxController{
     //esse metodo permite acessar o "bd" ref ficar ouvindo e enviar um snapshot dos itens no firabase
     readFiles(){
 
+        this.lastFolder = this.currentFolder.join('/');
+
         this.getFirebaseRef().on('value', snapshot =>{
             this.listFileEl.innerHTML = '';
 
@@ -543,18 +552,109 @@ class DropBoxController{
 
                 let key = snapshotItem.key;
                 let data = snapshotItem.val();
-
+                
+                //verificar se nos dados existe a prorpiedade type, para ignorar novos arquivos dentro de um pasta
                
-                this.listFileEl.appendChild(this.getFileView(data, key));
+                if(data.mimetype){
+                    this.listFileEl.appendChild(this.getFileView(data, key));
+                }
+
+                
 
             });
 
         })
-
-
     }
+
+    //metodo para criar um nova pasta e lê os arquivos que estão naquela pasta
+
+
+    openFolder(){
+    
+        if(this.lastFolder) this.getFirebaseRef(this.lastFolder).off('value');
+        
+
+        this.renderNav();
+        this.readFiles();
+                
+    }
+
+    //metodo para atualizar o bramdcamp
+
+    renderNav(){
+        
+        let nav = document.createElement('nav');
+        let path = [];
+        for(let i = 0; i < this.currentFolder.length; i++){
+
+            //pasta atual
+            let folderName = this.currentFolder[i];
+            //result = ultimo
+            let span = document.createElement('span')
+
+            path.push(folderName);
+            
+            if(i+1 === this.currentFolder.length){
+
+                span.innerHTML = folderName;
+
+
+
+            }else{
+                span.className = 'breadcrumb-segment__wrapper'
+                span.innerHTML =   `
+
+                <span class="ue-effect-container uee-BreadCrumbSegment-link-0">
+                     <a href="#" data-path="${path.join('/')}" class="breadcrumb-segment">${folderName}</a>
+                </span>
+                <svg width="24" height="24" viewBox="0 0 24 24" class="mc-icon-template-stateless" style="top: 4px; position: relative;">
+                    <title>arrow-right</title>
+                    <path d="M10.414 7.05l4.95 4.95-4.95 4.95L9 15.534 12.536 12 9 8.464z" fill="#637282" fill-rule="evenodd"></path>
+                </svg>
+                                
+                `              
+
+            }
+
+            nav.appendChild(span)
+        }
+
+        this.navEl.innerHTML = nav.innerHTML;
+
+        this.navEl.querySelectorAll('a').forEach(a=>{
+            a.addEventListener('click', a=>{
+                a.preventDefault();
+
+                this.currentFolder =  a.dataset.path.split('/');
+                this.openFolder();
+            })
+        })
+                                  
+        
+    }
+
+
     //basicamente destaque o li selecionado
     initEventsLi(li){
+
+
+        //criando um evento para both click
+        li.addEventListener('dblclick', e=>{
+            
+            let file = JSON.parse(li.dataset.file);
+
+            switch(file.mimetype){
+                case 'folder':
+                    this.currentFolder.push(file.originalFilename);
+                    this.openFolder();
+                break;
+                //se for um arquivo, é só abrir.
+                default:    
+                    window.open('file?path=' +file.filepath);
+            }
+
+        });      
+
 
         li.addEventListener('click', e=>{            
            
