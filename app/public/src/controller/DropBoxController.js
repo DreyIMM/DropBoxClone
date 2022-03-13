@@ -774,7 +774,7 @@ class DropBoxController{
                 break;
                 //se for um arquivo, é só abrir..
                 default:    
-                    window.open('/file?path='+file.path);
+                    window.open(file.path);
             }
 
         });      
