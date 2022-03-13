@@ -31,6 +31,15 @@ Este repósitorio contém todo o codigo fonte utilizado para construir um clone,
 - Firabase
 - Bower
 
+### 🚀 Start of project
+
+- bower install
+- npm install
+- npm start
+- Less GO 
+
+
+
 ### ✅ Construindo o projeto
 
 - [x] Instalando dependências para Front-End do Bower
