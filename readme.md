@@ -7,17 +7,17 @@ Este repósitorio contém todo o codigo fonte utilizado para construir um clone,
 
 -  Arquitetura do projeto
 <p align="center" style="display: flex; align-items: flex-start; justify-content: center;"> 
-<img alt="home" src="app/upload/Arquitetura.png" width="400px">
+<img alt="home" src="app/upload/Arquitetura.png" width="600px">
 </p>
 
 -  Tela principal
 <p align="center" style="display: flex; align-items: flex-start; justify-content: center;"> 
-<img alt="home" src="app/upload/TelaPrincipal.png" width="400px">
+<img alt="home" src="app/upload/TelaPrincipal.png" width="600px">
 </p>
 
 -  Modal de carregamento
 <p align="center" style="display: flex; align-items: flex-start; justify-content: center;"> 
-<img alt="home" src="app/upload/Modal.png" width="400px">
+<img alt="home" src="app/upload/Modal.png" width="600px">
 </p>
 
 
