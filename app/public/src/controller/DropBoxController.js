@@ -62,15 +62,26 @@ class DropBoxController{
             let file = JSON.parse(li.dataset.file);
             let key = li.dataset.key;
 
-            // dados que quero enviar para o meu servidor
-            let formData = new FormData();
+                        
+            promises.push(new Promise((resolve, reject)=>{
 
-            formData.append('path', file.filepath);
+               let fileRef =  firebase.storage().ref(this.currentFolder.join('/')).child(file.name)
+                //remove a referencia no storage
+               fileRef.delete().then(()=>{
+
+                resolve({
+                    fields:{
+                        key
+                    }
+                })
+
+               }).catch(err=>{
                 
-            formData.append('key', key);
-
-            promises.push(this.ajax('/file', 'DELETE', formData));
-            
+                    reject(err)
+               
+                })
+                
+            }));
 
         })
 
@@ -89,9 +100,9 @@ class DropBoxController{
 
             if(name){
                 this.getFirebaseRef().push().set({
-                    originalFilename: name,
-                    mimetype: 'folder',
-                    filepath: this.currentFolder.join('/')
+                    name: name,
+                    type: 'folder',
+                    path: this.currentFolder.join('/')
                 })
             }
         })
@@ -129,13 +140,13 @@ class DropBoxController{
             //li.dataset.file está como string, devemos converter para objeto JSON
             let file = JSON.parse(li.dataset.file)
 
-            let name = prompt("Renomear o arquivo:", file.originalFilename);
+            let name = prompt("Renomear o arquivo:", file.name);
 
             if(name){
                 //altera no firebase
                 //conecta na ref do fireabse 
                 //procura um filho que tem a mesma chaves
-                file.originalFilename = name ;
+                file.name = name ;
                 this.getFirebaseRef().child(li.dataset.key).set(file);
             }
 
@@ -182,16 +193,19 @@ class DropBoxController{
             //(event.target.files) -> coleção do arquivo enviado
             this.uploadTask(event.target.files).then(responses =>{
 
-                responses.forEach(resp =>{
-                    //vai no resp - files e dentro dele pega o (input-file) e seus dados e da um push no firebase
-                    this.getFirebaseRef().push().set(resp.files['input-file'])
-
-                });
+                responses.forEach(resp => { resp.ref.getDownloadURL().then(data=>{
+                     this.getFirebaseRef().push().set({ 
+                         name: resp.name,
+                         type: resp.contentType,
+                         path: data,
+                        size: resp.size }); 
+                });});
 
                 
                 this.UploadComplete()
 
             }).catch(err=>{
+
                 this.UploadComplete()
                 console.error(err)
             });
@@ -280,22 +294,48 @@ class DropBoxController{
         // file não é um array e sim uma coleção e para converta, utiliza-se o spreatch 
         [...files].forEach(file =>{
 
-            // como é leitura de arquivo, para se lê, utiliza o FormData
-            let formData = new FormData();
-            //1) nome do campo que o post receba - 2) qual é o arquivo que será enviado (file do forEach)
-            formData.append('input-file', file);
-                
+            
+            promises.push(new Promise((resolve, reject)=>{
 
-            promises.push(this.ajax('/upload', 'POST',formData,()=>{
 
-                this.uploadProgress(event,file)
+                //criando uma ref para salvar o arquivo no storage, aponta para referencia e faz o push
+                //dentro dessa referencia, criar um arquivo com esse nome ()
+                let fileRef =firebase.storage().ref(this.currentFolder.join('/')).child(file.name);
                 
-            }, ()=>{
+                //envia um arquivo para a referencia  
+                let taks = fileRef.put(file)
+                //da para ouvir quando processo envia os bits
+                
+                taks.on('state_changed', snapshot=>{
 
-                // Date.now() retorna em milisegundos
-                this.startUploadTime = Date.now();
-                
+                   this.uploadProgress({
+                    loaded: snapshot.bytesTransferred,
+                    total: snapshot.totalBytes
+                   },file) 
+
+                    console.log('progress' , snapshot)
+
+                }, error =>{
+
+                    console.error(error);
+                    reject();
+                }, ()=>{
+                    //esse metodo é o envio das informações do arquivo(12:00 tempo do curso)
+                    
+                    fileRef.getMetadata().then(metadata=>{
+                        
+                        resolve(metadata);
+
+                    }).catch(err=>{
+                        reject(err);
+                    })
+
+
+                })   
+
+
             }));
+            
         });
         //verifica todo mundo, e os resolve da colection
         return Promise.all(promises)
@@ -353,7 +393,7 @@ class DropBoxController{
         li.dataset.file = JSON.stringify(file);
         li.innerHTML =  `
                 ${this.getFileIconView(file)}
-                <div class="name text-center">${file.originalFilename}</div>
+                <div class="name text-center">${file.name}</div>
                               
         `
         this.initEventsLi(li);
@@ -366,7 +406,7 @@ class DropBoxController{
 
     //metodo para saber a extensão e pegar a icone correto
     getFileIconView(file){
-        switch(file.mimetype){
+        switch(file.type){
 
 
             case 'folder':
@@ -553,9 +593,8 @@ class DropBoxController{
                 let key = snapshotItem.key;
                 let data = snapshotItem.val();
                 
-                //verificar se nos dados existe a prorpiedade type, para ignorar novos arquivos dentro de um pasta
-               
-                if(data.mimetype){
+                //verificar se nos dados existe a prorpiedade type, para ignorar novos arquivos dentro de um past
+                if(data.type){
                     this.listFileEl.appendChild(this.getFileView(data, key));
                 }
 
@@ -645,14 +684,14 @@ class DropBoxController{
             let file = JSON.parse(li.dataset.file);
             //verificar o tipo do li clicado
 
-            switch(file.mimetype){
+            switch(file.type){
                 case 'folder':
-                    this.currentFolder.push(file.originalFilename);
+                    this.currentFolder.push(file.name);
                     this.openFolder();
                 break;
                 //se for um arquivo, é só abrir..
                 default:    
-                    window.open('/file?path='+file.filepath);
+                    window.open('/file?path='+file.path);
             }
 
         });      
