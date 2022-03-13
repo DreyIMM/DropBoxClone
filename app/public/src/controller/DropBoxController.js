@@ -650,7 +650,7 @@ class DropBoxController{
                     this.currentFolder.push(file.originalFilename);
                     this.openFolder();
                 break;
-                //se for um arquivo, é só abrir.
+                //se for um arquivo, é só abrir..
                 default:    
                     window.open('/file?path='+file.filepath);
             }
